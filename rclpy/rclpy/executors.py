@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor as _ThreadPoolExecutor
 import inspect
 import multiprocessing
-from threading import Condition
-from threading import Lock
+from threading import Condition as _Condition
+from threading import Lock as _Lock
 
 from rclpy.impl.implementation_singleton import rclpy_implementation as _rclpy
 from rclpy.task import Task
-from rclpy.timer import WallTimer
+from rclpy.timer import WallTimer as _WallTimer
 from rclpy.utilities import ok
 from rclpy.utilities import timeout_sec_to_nsec
 
@@ -42,7 +42,7 @@ class _WorkTracker:
     def __init__(self):
         # Number of tasks that are being executed
         self._num_work_executing = 0
-        self._work_condition = Condition()
+        self._work_condition = _Condition()
 
     def __enter__(self):
         """Increment the amount of executing work by 1."""
@@ -104,10 +104,10 @@ class Executor:
     def __init__(self):
         super().__init__()
         self._nodes = set()
-        self._nodes_lock = Lock()
+        self._nodes_lock = _Lock()
         # Tasks to be executed (oldest first) 3-tuple Task, Entity, Node
         self._tasks = []
-        self._tasks_lock = Lock()
+        self._tasks_lock = _Lock()
         # This is triggered when wait_for_ready_callbacks should rebuild the wait list
         gc, gc_handle = _rclpy.rclpy_create_guard_condition()
         self._guard_condition = gc
@@ -313,7 +313,7 @@ class Executor:
         timeout_timer = None
         timeout_nsec = timeout_sec_to_nsec(timeout_sec)
         if timeout_nsec > 0:
-            timeout_timer = WallTimer(None, None, timeout_nsec)
+            timeout_timer = _WallTimer(None, None, timeout_nsec)
 
         if nodes is None:
             nodes = self.get_nodes()
@@ -505,7 +505,7 @@ class MultiThreadedExecutor(Executor):
                 num_threads = multiprocessing.cpu_count()
             except NotImplementedError:
                 num_threads = 1
-        self._executor = ThreadPoolExecutor(num_threads)
+        self._executor = _ThreadPoolExecutor(num_threads)
 
     def spin_once(self, timeout_sec=None):
         try:
